@@ -11,10 +11,10 @@ import java.util.List;
 public class DiscussPostService {
     @Autowired
     private DiscussPostMapper discussPostMapper;
-    public List<DiscussPost> getDiscussPost(int userId,int offset,int limit) {
-        return discussPostMapper.selectDiscussPost(userId,offset,limit);
+    public List<DiscussPost> getDiscussPost(int user_id,int offset,int limit) {
+        return discussPostMapper.selectDiscussPost(user_id,offset,limit);
     }
-    public int getDiscussPostCount(int userId) {
-        return discussPostMapper.selectDiscussPostRows(userId);
+    public int getDiscussPostCount(int user_id) {
+        return discussPostMapper.selectDiscussPostRows(user_id);
     }
 }

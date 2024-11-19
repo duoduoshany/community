@@ -41,7 +41,7 @@ public class HomeController {
             for (DiscussPost post : list) {
                 Map<String,Object> map=new HashMap<>();//先有空对象
                 map.put("post",post);//put放第一个属性
-                User user=userService.findUserById(post.getUserId());
+                User user=userService.findUserById(post.getuser_id());
                 map.put("user",user);//放第二个属性
                 //放完所有属性后才是对象add加进集合。
                 discussPosts.add(map);

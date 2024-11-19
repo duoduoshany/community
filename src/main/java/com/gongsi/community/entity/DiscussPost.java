@@ -6,10 +6,10 @@ public class DiscussPost {
     private int id;
     private String title;
     private String content;
-    private int userId;
+    private int user_id;
     private int type;
     private int status;
-    private Date createTime;
+    private Date create_time;
     private int comment_count;
     private double score;
 
@@ -37,12 +37,12 @@ public class DiscussPost {
         this.content = content;
     }
 
-    public int getUserId() {
-        return userId;
+    public int getuser_id() {
+        return user_id;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
+    public void setuser_id(int user_id) {
+        this.user_id = user_id;
     }
 
     public int getType() {
@@ -61,12 +61,12 @@ public class DiscussPost {
         this.status = status;
     }
 
-    public Date getCreateTime() {
-        return createTime;
+    public Date getCreate_time() {
+        return create_time;
     }
 
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+    public void setCreate_time(Date create_time) {
+        this.create_time = create_time;
     }
 
     public int getComment_count() {
@@ -91,10 +91,10 @@ public class DiscussPost {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
-                ", userId=" + userId +
+                ", user_id=" + user_id +
                 ", type=" + type +
                 ", status=" + status +
-                ", createTime=" + createTime +
+                ", create_time=" + create_time +
                 ", comment_count=" + comment_count +
                 ", score=" + score +
                 '}';

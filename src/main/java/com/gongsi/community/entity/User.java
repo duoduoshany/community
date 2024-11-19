@@ -3,6 +3,41 @@ package com.gongsi.community.entity;
 import java.util.Date;
 
 public class User {
+    private int id;
+    private String username;
+    private String password;
+    private String email;
+    private String salt;
+    private int type;
+    private int status;
+
+    public String getActivation_code() {
+        return activation_code;
+    }
+
+    public void setActivation_code(String activation_code) {
+        this.activation_code = activation_code;
+    }
+
+    public String getHeader_url() {
+        return header_url;
+    }
+
+    public void setHeader_url(String header_url) {
+        this.header_url = header_url;
+    }
+
+    public Date getCreate_time() {
+        return create_time;
+    }
+
+    public void setCreate_time(Date create_time) {
+        this.create_time = create_time;
+    }
+
+    private String activation_code;
+    private String header_url;
+    private Date create_time;
     public int getId() {
         return id;
     }
@@ -59,31 +94,8 @@ public class User {
         this.status = status;
     }
 
-    public String getActivation_code() {
-        return activation_code;
-    }
 
-    public void setActivation_code(String activation_code) {
-        this.activation_code = activation_code;
-    }
 
-    public String getHeader_url() {
-        return header_url;
-    }
-
-    public void setHeader_url(String header_url) {
-        this.header_url = header_url;
-    }
-
-    public Date getCreate_time() {
-        return create_time;
-    }
-
-    public void setCreate_time(Date create_time) {
-        this.create_time = create_time;
-    }
-
-    private int id;
 
     @Override
     public String toString() {
@@ -100,16 +112,6 @@ public class User {
                 ", create_time=" + create_time +
                 '}';
     }
-
-    private String username;
-    private String password;
-    private String email;
-    private String salt;
-    private int type;
-    private int status;
-    private String activation_code;
-    private String header_url;
-    private Date create_time;
 
 
 
