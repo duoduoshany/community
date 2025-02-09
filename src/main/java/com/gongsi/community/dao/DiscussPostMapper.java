@@ -14,5 +14,10 @@ public interface DiscussPostMapper {
 
     //查询用户帖子一共可能有几页，需要两个参数：一个是一共有多少条数据，另一个是limit
     //@Param（""）用于给参数起别名,动态sql拼条件时，如果方法只有一个参数，那么这个参数必须起别名，如果有多个就可以不用
+    //下面方法是查询一共有多少条帖子
     int selectDiscussPostRows(@Param("user_id") int user_id);
+    int insertDiscussPost(DiscussPost discussPost);
+    //查询某个帖子的详情页
+    DiscussPost selectDiscussPostById(int id);
+    int updateCommentCount(int id,int comment_count);
 }

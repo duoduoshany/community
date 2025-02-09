@@ -1,7 +1,9 @@
 package com.gongsi.community;
 import com.gongsi.community.dao.DiscussPostMapper;
+import com.gongsi.community.dao.MessageMapper;
 import com.gongsi.community.dao.UserMapper;
 import com.gongsi.community.entity.DiscussPost;
+import com.gongsi.community.entity.Message;
 import com.gongsi.community.entity.User;
 
 
@@ -13,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.Date;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -26,6 +29,7 @@ public class MapperTest {
     private UserMapper userMapper;
     @Autowired
     private DiscussPostMapper discussPostMapper;
+
     @Test
     public void testSelectUser()
     {
@@ -74,4 +78,19 @@ public class MapperTest {
         int result=discussPostMapper.selectDiscussPostRows(0);
         System.out.println(result);
     }
+    @Autowired
+    private MessageMapper messageMapper;
+    @Test
+    public void testSelectLetters()
+    {
+        List<Message> list1=messageMapper.selectLetters("111_112",0,10);
+        for(Message message:list1)
+        {
+            System.out.println(message);
+        }
+        int count1=messageMapper.selectLettersCount("111_112");
+        int count=messageMapper.selectLetterUnreadCount(112,"111_112");
+        System.out.println(count1+" "+count);
+    }
+
 }

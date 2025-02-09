@@ -6,7 +6,9 @@ import com.gongsi.community.entity.DiscussPost;
 import com.gongsi.community.entity.Page;
 import com.gongsi.community.entity.User;
 import com.gongsi.community.service.DiscussPostService;
+import com.gongsi.community.service.LikeService;
 import com.gongsi.community.service.UserService;
+import com.gongsi.community.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,11 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-public class HomeController {
+public class HomeController implements CommunityConstant {
     @Autowired
     private DiscussPostService discussPostService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private LikeService likeService;
     @RequestMapping(path="/index",method= RequestMethod.GET)
     //分页的时候页面会传入有关的条件
     public String getIndexPage(Model model, Page page)
@@ -41,14 +45,21 @@ public class HomeController {
             for (DiscussPost post : list) {
                 Map<String,Object> map=new HashMap<>();//先有空对象
                 map.put("post",post);//put放第一个属性
-                User user=userService.findUserById(post.getuser_id());
+                User user=userService.findUserById(post.getUser_id());
                 map.put("user",user);//放第二个属性
                 //放完所有属性后才是对象add加进集合。
+                long likeCount=likeService.findEntityLikeCount(ENTITY_TYPE_POST,post.getId());
+                map.put("likeCount",likeCount);
                 discussPosts.add(map);
             }
         }
         //得把要在页面展示的结果discussPosts装到model里页面才能得到
         model.addAttribute("discussPosts",discussPosts);
         return "index";
+    }
+    @RequestMapping(path ="/error",method=RequestMethod.GET)
+    public String getErrorPage()
+    {
+        return "/error/500";
     }
 }

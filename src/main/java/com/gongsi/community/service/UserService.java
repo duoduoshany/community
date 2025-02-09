@@ -1,13 +1,16 @@
 package com.gongsi.community.service;
 
 import com.gongsi.community.dao.UserMapper;
+import com.gongsi.community.entity.LoginTicket;
 import com.gongsi.community.entity.User;
 import com.gongsi.community.util.CommunityConstant;
 import com.gongsi.community.util.CommunityUtil;
 import com.gongsi.community.util.MailClient;
+import com.gongsi.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -16,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserService implements CommunityConstant {
@@ -25,12 +29,14 @@ public class UserService implements CommunityConstant {
     private MailClient mailClient;
     @Autowired
     private TemplateEngine templateEngine;
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
+    @Autowired
+    private RedisTemplate redisTemplate;
     @Value("${community.path.domain}")
     private String domain;
 
-    public User findUserById(int id){
-        return userMapper.getUserById(id);
-    }
+
     //返回的内容主要包含多种错误信息,希望返回类型可以封装多种内容。
     //注册时希望把用户注册信息传递给方法
     public Map<String,Object> register(User user){
@@ -108,10 +114,108 @@ public class UserService implements CommunityConstant {
         {
             //在不是重复激活前提下的传入的激活码跟用户的激活码一样，才是激活成功
             userMapper.updateStatus(user_id,1);//需要把用户的状态改成1
+            clearCache(user_id);
             return ACTIVATION_SUCCESS;//
         }
         else{
             return ACTIVATION_FAILURE;
         }
+    }
+    //登录的时候会输入用户账号，密码和希望凭证过期的时间
+    public Map<String,Object> login(String username,String password,int expiredSeconds){
+        Map<String,Object> map=new HashMap<>();
+        //1.空值处理
+        if(StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空");
+            return map;
+        }
+        if(StringUtils.isBlank(password)) {
+            map.put("passwordMsg","密码不能为空");
+            return map;
+        }
+        //2.对合法性进行验证
+        //验证账号，根据传入的用户名查询数据库中是否存在账号
+        User user=userMapper.getUserByName(username);
+        if(user==null)
+        {
+            map.put("usernameMsg","该账号不存在");
+            return map;
+        }
+        //验证账号状态，账号存在的话看有没有激活，没有激活不能登录
+        if(user.getStatus()==0)
+        {
+            map.put("usernameMsg","该账号未激活");
+            return map;
+        }
+        //验证密码：账号已激活就可以验证密码
+        password = CommunityUtil.md5(password+user.getSalt());
+        if(!password.equals(user.getPassword()))
+        {
+            map.put("passwordMsg","密码不正确");
+            return map;
+        }
+        //登录成功，需要生成登录凭证（发放个令牌）
+        LoginTicket loginTicket=new LoginTicket();
+        loginTicket.setStatus(0);//0是有效的状态哈，这里
+        loginTicket.setUser_id(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        //因为单位是ms，所以乘1000
+        loginTicket.setExpired(new Date(System.currentTimeMillis()+expiredSeconds*1000));
+//        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        String redisKey= RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        //redisTemplate配置相应的序列化方式会把对象序列化为字符串，再利用opsForValue操作对象把这个String类型的数据存入到redis中。
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
+
+        map.put("ticket",loginTicket.getTicket());//把ticket放到map中方便后续返回给客户端
+        //因为controller会调用业务层方法得到这个返回值map，就可以获取ticket
+        return map;
+
+    }
+    public void logout(String ticket)
+    {
+        String redisKey=RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket=(LoginTicket) redisTemplate.opsForValue().get(redisKey);
+        loginTicket.setStatus(1);
+        redisTemplate.opsForValue().set(redisKey,loginTicket);
+    }
+    public LoginTicket findLoginTicket(String ticket){
+//        return loginTicketMapper.selectLoginTicketByTicket(ticket);
+        String redisKey=RedisKeyUtil.getTicketKey(ticket);
+        return (LoginTicket) redisTemplate.opsForValue().get(redisKey);
+    }
+    public int updateHeader(int userId, String headerUrl) {
+        int rows=userMapper.updateHeader(userId, headerUrl);
+        clearCache(userId);
+        return rows;
+    }
+    public User findUserByName(String username) {
+        return userMapper.getUserByName(username);
+    }
+    public User findUserById(int userId){
+        //return userMapper.getUserById(id);
+        User user=getCache(userId);
+        if(user==null)
+        {
+            user=initCache(userId);
+        }
+        return user;
+    }
+    //1.优先从缓存中取值
+    public User getCache(int userId){
+        String redisKey=RedisKeyUtil.getUserKey(userId);
+        return (User)redisTemplate.opsForValue().get(redisKey);
+    }
+    //2.缓存未命中时初始化缓存数据：存的是用户对象而不是用户id
+    public User initCache(int userId){
+        User user=userMapper.getUserById(userId);
+        String redisKey=RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(redisKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+    //3.数据变更时清除缓存数据
+    public void clearCache(int userId){
+        String redisKey=RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(redisKey);
     }
 }
