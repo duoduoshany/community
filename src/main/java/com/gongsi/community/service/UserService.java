@@ -11,14 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -115,7 +113,7 @@ public class UserService implements CommunityConstant {
             //在不是重复激活前提下的传入的激活码跟用户的激活码一样，才是激活成功
             userMapper.updateStatus(user_id,1);//需要把用户的状态改成1
             clearCache(user_id);
-            return ACTIVATION_SUCCESS;//
+            return ACTIVATION_SUCCESS;
         }
         else{
             return ACTIVATION_FAILURE;
@@ -217,5 +215,28 @@ public class UserService implements CommunityConstant {
     public void clearCache(int userId){
         String redisKey=RedisKeyUtil.getUserKey(userId);
         redisTemplate.delete(redisKey);
+    }
+
+    //根据用户信息获取用户权限，security要求用户权限是GrantedAuthority接口对象
+    // 接口对象可以指向不同实现类的实例
+
+    public Collection<? extends GrantedAuthority> getAuthorities(int userId){
+        User user=this.findUserById(userId);
+        List<GrantedAuthority> list=new ArrayList<>();
+        //匿名实现接口其实是将方法的返回值作为参数传递给匿名类的构造函数，构造出实现接口的匿名类对象
+        list.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                switch(user.getType()){
+                    case 1:
+                        return AUTHORITY_ADMIN;
+                        case 2:
+                            return AUTHORITY_MODERATOR;
+                    default:
+                                return AUTHORITY_USER;
+                }
+            }
+        });
+        return list;
     }
 }

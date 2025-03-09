@@ -90,7 +90,7 @@ public class UserController implements CommunityConstant {
         // 写一个自己定义的路径模板,允许外界访问图片的web路径
         //https:localhost:8080/community/user/header/xxx.png
         User user=hostHolder.getUser();
-        String headerUrl=domain+"/"+"/user/header/"+filename;
+        String headerUrl=domain+"/user/header/"+filename;
         //调用userService的更新头像web路径的方法
         userService.updateHeader(user.getId(),headerUrl);
         //更新成功后返回首页

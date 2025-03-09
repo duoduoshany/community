@@ -9,7 +9,9 @@ import com.gongsi.community.service.UserService;
 import com.gongsi.community.util.CommunityConstant;
 import com.gongsi.community.util.CommunityUtil;
 import com.gongsi.community.util.HostHolder;
+import com.gongsi.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -27,6 +29,8 @@ public class LikeController implements CommunityConstant {
     private HostHolder hostHolder;//谁点赞，当前用户点赞，获取当前用户
     @Autowired
     private EventProducer eventProducer;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(path="/like",method= RequestMethod.POST)
     @ResponseBody//异步请求统一加
@@ -60,6 +64,11 @@ public class LikeController implements CommunityConstant {
                     .setData("postId",postId);//有可能点赞的是帖子，所以要传帖子id方便查帖子详情
             eventProducer.fireEvent(event);
         }
+        if(entityType==ENTITY_TYPE_POST){
+            String redisKey= RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey,postId);
+        }
+
        return CommunityUtil.getJSONString(0,null,map);
     }
 

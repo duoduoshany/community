@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.util.ArrayList;
@@ -31,14 +32,14 @@ public class HomeController implements CommunityConstant {
     private LikeService likeService;
     @RequestMapping(path="/index",method= RequestMethod.GET)
     //分页的时候页面会传入有关的条件
-    public String getIndexPage(Model model, Page page)
+    public String getIndexPage(Model model, Page page,@RequestParam(name="orderMode",defaultValue = "0") int orderMode)
     {
         //方法调用前，SpringMVC会自动实例化Model和Page，并将Page注入给Modele，所以在thymleaf中就可以直接访问Page对象的数据
         //总行数需要服务器来获取并设置到page对象中
         page.setRows(discussPostService.getDiscussPostCount(0));
-        page.setPath("/index");//当前访问路径是index
+        page.setPath("/index?orderMode="+orderMode);//当前访问路径是index
         //offset和limit都来源于客户端,不写si
-        List<DiscussPost> list=discussPostService.getDiscussPost(0,page.getOffset(),page.getLimit());
+        List<DiscussPost> list=discussPostService.getDiscussPost(0,page.getOffset(),page.getLimit(),orderMode);
         System.out.println("讨论帖数量: " + (list != null ? list.size() : "无数据"));
         List<Map<String,Object>> discussPosts=new ArrayList<>();
         if(list!=null) {
@@ -55,11 +56,17 @@ public class HomeController implements CommunityConstant {
         }
         //得把要在页面展示的结果discussPosts装到model里页面才能得到
         model.addAttribute("discussPosts",discussPosts);
+        model.addAttribute("orderMode",orderMode);
         return "index";
     }
     @RequestMapping(path ="/error",method=RequestMethod.GET)
     public String getErrorPage()
     {
         return "/error/500";
+    }
+    //没有对应权限，拒绝访问时的提示页面
+    @RequestMapping(path = "/denied", method = {RequestMethod.GET, RequestMethod.POST})
+    public String getDeniedPage() {
+        return "/error/404";
     }
 }

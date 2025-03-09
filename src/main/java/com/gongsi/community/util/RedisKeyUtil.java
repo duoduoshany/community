@@ -10,6 +10,11 @@ public class RedisKeyUtil {
     private static final String PREFIX_KAPTCHA="kaptcha";
     private static final String PREFIX_TICKET="ticket";
     private static final String PREFIX_USER="user";
+    private static final String PREFIX_UV="uv";
+    private static final String PREFIX_DAU="dau";
+    private static final String PREFIX_POST="post";
+    private static final String PREFIX_POSTS="posts";
+    private static final String PREFIX_ROWS="rows";
 
     public static String getEntityLike(int entityType,int entityId) {
         return PREFIX_ENTITY_LIKE+SPLIT+entityType+SPLIT+entityId;
@@ -42,6 +47,34 @@ public class RedisKeyUtil {
     //缓存用户信息
     public static String getUserKey(int userId){
         return PREFIX_USER+SPLIT+userId;
+    }
+    //单日uv的key
+    public static String getUVKey(String date){
+        return PREFIX_UV+SPLIT+date;
+    }
+    //区间uv
+    public static String getUVKey(String startDate,String endDate){
+        return PREFIX_UV+SPLIT+startDate+SPLIT+endDate;
+    }
+    //单日DAU
+    public static String getDAUKey(String date){
+        return PREFIX_DAU+SPLIT+date;
+    }
+    //区间DAU
+    public static String getDAUKey(String startDate,String endDate){
+        return PREFIX_ENTITY_LIKE+SPLIT+startDate+SPLIT+endDate;
+    }
+    //统计帖子分数的key,因为这个键表示的数据是个帖子集合，所以不要传单独的帖子id去表示集合
+    public static String getPostScoreKey(){
+        return PREFIX_POST+SPLIT+"score";
+    }
+
+    public static String getPostsKey(int offset,int limit){
+        return PREFIX_POSTS+offset+SPLIT+limit;
+    }
+
+    public static String getRowsKey(int userId){
+        return PREFIX_ROWS+SPLIT+userId;
     }
 }
 

@@ -5,7 +5,12 @@ import com.gongsi.community.entity.User;
 import com.gongsi.community.service.UserService;
 import com.gongsi.community.util.CookieUtil;
 import com.gongsi.community.util.HostHolder;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -39,6 +44,11 @@ public class LoginTicketInterceptor implements HandlerInterceptor{
                 //服务器处理请求是多线程环境，为了让每个线程的用户信息之间不互相干扰且不必传递session对象，使用ThreadLocal
                 //在本次请求中持有用户
                 hostHolder.setUser(user);
+                //构建用户认证的结果存入SecurityContext中以便授权时Security可以根据结果获取用户权限
+                Authentication authentication=new UsernamePasswordAuthenticationToken(
+                        user,user.getPassword(),userService.getAuthorities(user.getId()));
+                //idea提示方法传的参数应是SecurityContext类型，SecurityContextImpl是该接口的实现类
+                SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
             }
         }
         return true;
@@ -56,6 +66,7 @@ public class LoginTicketInterceptor implements HandlerInterceptor{
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         hostHolder.clear();
+        SecurityContextHolder.clearContext();
     }
 
 }

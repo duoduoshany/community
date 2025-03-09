@@ -18,6 +18,7 @@ public class DiscussPost {
     private String title;
     @Field(type = FieldType.Text,analyzer = "ik_max_word",searchAnalyzer = "ik_smart")
     private String content;
+    //在 @Field 注解中，es索引的字段名默认与对象属性名相同
     @Field(type= FieldType.Integer)//属性与索引的普通字段映射，并指定字段类型为整型
     private int user_id;
     @Field(type= FieldType.Integer)

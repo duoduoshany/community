@@ -1,3 +1,13 @@
+$(function(){
+    $("#topBtn").click(setTop);
+    $("#wonderfulBtn").click(setWonderful);
+    $("#deleteBtn").click(setDelete);
+})
+
+
+
+
+
 //异步请求可以发送给服务器数据，也可以接收服务器返回的数据
 function like(btn,entityType,entityId,entityUserId,postId){
     $.post(
@@ -18,4 +28,52 @@ function like(btn,entityType,entityId,entityUserId,postId){
             }
         }//处理返回的数据
     )
+}
+function  setTop(){
+    $.post(
+        "/discuss/top",
+        {"id":$("#postId").val()},
+        function(data){
+            data=$.parseJSON(data);
+            if(data.code==0){
+                //禁用置顶按钮
+                $("#topBtn").attr("disabled","disabled");
+            }
+            else{
+                alert(data.msg);
+            }
+        }
+    );
+}
+function  setWonderful(){
+    $.post(
+        "/discuss/wonderful",
+        {"id":$("#postId").val()},
+        function(data){
+            data=$.parseJSON(data);
+            if(data.code==0){
+                //禁用加精按钮
+                $("#wonderfulBtn").attr("disabled","disabled");
+            }
+            else{
+                alert(data.msg);
+            }
+        }
+    );
+}
+function  setDelete(){
+    $.post(
+        "/discuss/delete",
+        {"id":$("#postId").val()},
+        function(data){
+            data=$.parseJSON(data);
+            //注意删除之后帖子不存在，设置按钮也没有什么意义，从被删除的帖子详情页面跳转到首页
+            if(data.code==0){
+                location.href="/index";
+            }
+            else{
+                alert(data.msg);
+            }
+        }
+    );
 }

@@ -167,8 +167,8 @@ public class MessageController implements CommunityConstant {
         //查询评论类通知：这一类通知会话数量为1，所以调用service查找最新的message只有一条
         User user=hostHolder.getUser();
         Message message=messageService.findLatestNotice(user.getId(),TOPIC_COMMENT);
-        Map<String,Object> messageVo=new HashMap<>();
         if(message!=null){
+            Map<String,Object> messageVo=new HashMap<>();
             messageVo.put("message",message);
             //有了message的所有字段，其中content字段的json字符串应该拆解成多个键值对放进整合map，先转义
             String content= HtmlUtils.htmlUnescape(message.getContent());
@@ -182,13 +182,13 @@ public class MessageController implements CommunityConstant {
             messageVo.put("count",count);
             int unread=messageService.findNoticeUnreadCount(user.getId(),TOPIC_COMMENT);
             messageVo.put("unread",unread);
+            model.addAttribute("commentNotice",messageVo);
         }
 
-        model.addAttribute("commentNotice",messageVo);
         //查完评论类，查询点赞类通知
         message=messageService.findLatestNotice(user.getId(),TOPIC_LIKE);
-        messageVo=new HashMap<>();
         if(message!=null){
+            Map<String,Object> messageVo=new HashMap<>();
             messageVo.put("message",message);
             //有了message的所有字段，其中content字段的json字符串应该拆解成多个键值对放进整合map，先转义
             String content= HtmlUtils.htmlUnescape(message.getContent());
@@ -202,13 +202,12 @@ public class MessageController implements CommunityConstant {
             messageVo.put("count",count);
             int unread=messageService.findNoticeUnreadCount(user.getId(),TOPIC_LIKE);
             messageVo.put("unread",unread);
+            model.addAttribute("likeNotice",messageVo);
         }
-        model.addAttribute("likeNotice",messageVo);
-
         //查询关注类通知
         message=messageService.findLatestNotice(user.getId(),TOPIC_FOLLOW);
-        messageVo=new HashMap<>();
         if(message!=null){
+            Map<String,Object> messageVo=new HashMap<>();
             messageVo.put("message",message);
             //有了message的所有字段，其中content字段的json字符串应该拆解成多个键值对放进整合map，先转义
             String content= HtmlUtils.htmlUnescape(message.getContent());
@@ -221,13 +220,8 @@ public class MessageController implements CommunityConstant {
             messageVo.put("count",count);
             int unread=messageService.findNoticeUnreadCount(user.getId(),TOPIC_FOLLOW);
             messageVo.put("unread",unread);
+            model.addAttribute("followNotice",messageVo);
         }
-        else {
-            // 确保即使没有消息，followNotice也不会为null
-            messageVo.put("message", null);
-        }
-        model.addAttribute("followNotice",messageVo);
-        System.out.println("followNotice: " + messageVo);
 
         //跟私信列表一样，通知列表要查询未读私信数量,跟这个用户有关的所有会话的未读消息数量
         int letterUnreadCount=messageService.findLetterUnreadCount(user.getId(),null);

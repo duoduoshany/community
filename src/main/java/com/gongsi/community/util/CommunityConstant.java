@@ -25,7 +25,17 @@ public interface CommunityConstant {
     String TOPIC_FOLLOW="follow";
     //主题：发帖
     String TOPIC_PUBLISH="publish";
+    //主题：删帖
+    String TOPIC_DELETE="delete";
+    //主题：分享
+    String TOPIC_SHARE="share";
     //为了让别人知道系统用户user_id是1
     int SYSTEM_USER_ID=1;
+    //普通用户
+    String AUTHORITY_USER="user";
+    //管理员
+    String AUTHORITY_ADMIN="admin";
+    //版主
+    String AUTHORITY_MODERATOR="moderator";
 
 }

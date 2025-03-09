@@ -4,6 +4,13 @@ $(function(){
 //获取发布按钮，并给按钮定义一个单击事件：单击时调下面这个方法
 function publish() {
 	$("#publishModal").modal("hide");
+	//获取meta元素再获取属性值
+	// var token=$("meta[name='_csrf']").attr("content");
+	// var header=$("meta[name='_csrf_header']").attr("content");
+	//通过发送异步请求的核心对象来设置header
+	// $(document).ajaxSend(function(e,xhr,options){
+	// 	xhr.setRequestHeader(header,token);
+	// });
 	//获取标题和内容
 	//选中这个框并获取框中的值
 	var title=$("#recipient-name").val();

@@ -12,11 +12,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.Page;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +34,14 @@ public class EventConsumer implements CommunityConstant {
     private DiscussPostService discussPostService;
     @Autowired
     private ElasticsearchService elasticsearchService;
+
+    @Value("${wk.image.command}")
+    private String wkImageCommand;
+
+    @Value("${wk.image.storage}")
+    private String wkImageStorage;
+
+
     //三个主题的处理形式非常接近，比如xxx关注了你，xxx评论了你，xxx点赞了你
     //可以写一个方法同时处理掉三个主题
     @KafkaListener(topics={TOPIC_LIKE,TOPIC_COMMENT,TOPIC_FOLLOW})
@@ -88,6 +98,51 @@ public class EventConsumer implements CommunityConstant {
         }
         DiscussPost discussPost=discussPostService.findDiscussPostById(event.getEntityId());
         elasticsearchService.saveDiscussPost(discussPost);
+    }
+    @KafkaListener(topics={TOPIC_DELETE})
+    //ConsumerRecord封装了从Kafka消息队列中获取的消息及其相关的分区偏移量信息等。
+    //接收消息时封装成ConsumerRecord再传递给消费者的监听方法，此时方法获取消息的全部数据
+    public void handleDeleteMessage(ConsumerRecord record) {
+        //record.value()先判断record！=null，该方法获取json字符串：为空：本身没有传递消息值或者消息值序列化失败导致消息值丢失
+        if(record==null||record.value()==null){
+            logger.error("消息内容为空!");
+            return;
+        }
+        //json字符串不是空的，可以将其解析为event对象
+        Event event= JSONObject.parseObject(record.value().toString(),Event.class);
+        if(event==null){
+            logger.error("消息格式错误");
+            return;
+        }
+        elasticsearchService.deleteDiscussPost(event.getEntityId());
+    }
+
+    @KafkaListener(topics={TOPIC_SHARE})
+    public void handleShareMessage(ConsumerRecord record){
+        if(record==null||record.value()==null){
+            logger.error("消息内容为空!");
+            return;
+        }
+        //json字符串不是空的，可以将其解析为event对象
+        Event event= JSONObject.parseObject(record.value().toString(),Event.class);
+        if(event==null){
+            logger.error("消息格式错误");
+            return;
+        }
+        //得到事件的data属性值，我们定义了data的键是String，值是Object
+        String htmlUrl=(String)event.getData().get("htmlUrl");
+        String filename=(String)event.getData().get("filename");
+        String suffix=(String)event.getData().get("suffix");
+
+        //拼命令，注意命令有些地方有空格
+        String cmd=wkImageCommand+" --quality 75 "+htmlUrl+" "+wkImageStorage+"/"
+                +filename+suffix;
+        try {
+            Runtime.getRuntime().exec(cmd);
+            logger.info("生成长图成功:"+cmd);
+        } catch (IOException e) {
+            logger.error("生成长图失败："+e.getMessage());
+        }
     }
 
 }

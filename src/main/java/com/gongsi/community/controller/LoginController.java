@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -106,6 +107,7 @@ public class LoginController implements CommunityConstant {
         //session.setAttribute("kaptcha", text);
 
         //先有字符串，把这个字符串传给cookie用于客户端标识，再按照这个字符串创建一个key
+        //客户端后续的请求带上这个cookie就可以让后端知道是哪个用户，他对应的验证码是什么，从而对比输入的验证码和真正的验证码
         String kaptchaOwner= CommunityUtil.generateUUID();
         Cookie cookie=new Cookie("kaptchaOwner",kaptchaOwner);
         cookie.setMaxAge(2*60);//这个cookie的生存时间设成60s
@@ -174,6 +176,7 @@ public class LoginController implements CommunityConstant {
     public String logout(@CookieValue("ticket") String ticket)
     {
         userService.logout(ticket);
+        SecurityContextHolder.clearContext();
         //退出的话可以重新登录，所以重定向到登录
         return "redirect:/login";
     }
